@@ -24,7 +24,7 @@ async function sendNotification(
         notify({
             title: `Update to ${ repoName }`,
             icon,
-            message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }`
+            message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }\n\nSuggest you rebase or merge now.`
         }, (err, response, meta) => {
             if (err) {
                 console.error(`Unable to send notification: ${ err }`);
