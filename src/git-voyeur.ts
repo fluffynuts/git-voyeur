@@ -18,10 +18,12 @@ async function sendNotification(
     if (!mostRecent) {
         return;
     }
+    const icon = path.resolve("icon.png");
+    debug(`using icon at: ${icon}`);
     return new Promise<void>((resolve, reject) => {
         notify({
             title: `Update to ${ repoName }`,
-            icon: "icon.png",
+            icon,
             message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }`
         }, (err, response, meta) => {
             if (err) {
