@@ -24,8 +24,8 @@ async function sendNotification(
         notify({
             title: `Update to ${ repoName }`,
             icon,
-            message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }\n\nSuggest you rebase or merge now.`
-        }, (err, response, meta) => {
+            message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }`
+        }, (err) => {
             if (err) {
                 console.error(`Unable to send notification: ${ err }`);
             }
@@ -72,7 +72,7 @@ export async function watch(opts: CliOptions) {
                 lastHash
             });
             if (latestHash !== lastHash) {
-                if (false && lastHash === undefined) {
+                if (!lastHash) {
                     console.log(`watching as of ${ latestHash }: ${ mostRecent?.author_name }: ${ mostRecent?.message }`);
                 } else {
                     await sendNotification(repoName, mostRecent);
