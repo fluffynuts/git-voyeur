@@ -6,6 +6,7 @@ Be notified when a git repo has upstream changes
 usage
 ---
 
+
 inside a repository:
 ```
 npx -y git-voyeur
