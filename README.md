@@ -21,3 +21,4 @@ default poll is 30s, change with `--interval`:
 npx -y git-voyeur --repo /path/to/repo --interval 60
 ```
 
+
