@@ -5,6 +5,7 @@ import { notify } from "node-notifier";
 import * as path from "path";
 import { debug as debugFactory } from "debug";
 import { fileExists } from "yafs";
+import { emojify } from "node-emoji";
 
 const debug = debugFactory("git-voyeur");
 
@@ -14,17 +15,19 @@ type GitLog = DefaultLogFields & ListLogLine;
 
 async function sendNotification(
     repoName: string,
-    mostRecent: Nullable<GitLog>
+    log: Nullable<GitLog>,
+    tracking: string
 ) {
-    if (!mostRecent) {
+    if (!log) {
         return;
     }
     const icon = await findIcon();
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(resolve => {
         notify({
-            title: `Update to ${ repoName }`,
+            title: `${ repoName } : (${tracking}) updated by ${log.author_name}`,
             icon,
-            message: `${ mostRecent.author_name } committed:\n${ mostRecent.message }`
+            wait: true,
+            message: emojify(log.message)
         }, (err) => {
             if (err) {
                 console.error(`Unable to send notification: ${ err }`);
@@ -40,18 +43,17 @@ const iconSearch = [
 ];
 
 async function findIcon(): Promise<Optional<string>> {
-  for (const icon of iconSearch) {
-      if (await fileExists(icon)) {
-          debug(`found icon at '${icon}'`);
-          return icon;
-      }
-  }
-  debug(`unable to find icon, searched:\n${iconSearch.join("\n")}`);
-  return undefined;
+    for (const icon of iconSearch) {
+        if (await fileExists(icon)) {
+            debug(`found icon at '${ icon }'`);
+            return icon;
+        }
+    }
+    debug(`unable to find icon, searched:\n${ iconSearch.join("\n") }`);
+    return undefined;
 }
 
 export async function watch(opts: CliOptions) {
-    let lastHash = undefined as Optional<string>;
     const
         repoPath = path.resolve(opts.repo),
         repoName = path.basename(repoPath);
@@ -60,25 +62,23 @@ export async function watch(opts: CliOptions) {
     while (true) {
         try {
             const git = gitFactory(opts.repo);
-            await git.fetch();
-            const mostRecentLog = await git.log({
-                maxCount: 1
-            });
-            const
-                mostRecent = mostRecentLog.latest,
-                latestHash = mostRecent?.hash || undefined;
-            debug({
-                latestHash,
-                lastHash
-            });
-            if (latestHash !== lastHash) {
-                if (!lastHash) {
-                    console.log(`watching as of ${ latestHash }: ${ mostRecent?.author_name }: ${ mostRecent?.message }`);
-                } else {
-                    await sendNotification(repoName, mostRecent);
-                }
+            const fetchResult = await git.fetch();
+            if (fetchResult.updated.length === 0) {
+                await sleep(opts.interval * 1000);
+                continue;
             }
-            lastHash = latestHash;
+            for (const update of fetchResult.updated) {
+                const log = await git.log({
+                    from: update.from,
+                    to: update.to
+                });
+                if (!log.latest) {
+                    continue;
+                }
+                debug(update);
+                debug(`--- should notify of update ---`);
+                await sendNotification(repoName, log.latest, update.tracking);
+            }
             await sleep(opts.interval * 1000);
         } catch (e) {
             console.error(`Error: ${ e }`);

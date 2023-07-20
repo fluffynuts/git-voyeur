@@ -49,6 +49,7 @@
     "zarro": "^1.144.0"
   },
   "dependencies": {
+    "node-emoji": "^2.1.0",
     "node-notifier": "^10.0.1",
     "simple-git": "^3.19.1",
     "yafs": "^1.27.0",
