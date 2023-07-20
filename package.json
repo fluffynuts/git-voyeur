@@ -1,6 +1,6 @@
 {
   "name": "git-voyeur",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "run inside a git repository, eg with npx, periodically fetches & emits a notification when there's upstream updates",
   "main": "index.js",
   "scripts": {
